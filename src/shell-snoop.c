@@ -125,15 +125,6 @@ int main(int argc, char *argv[]) {
       }
     } while (!WIFEXITED(status) && !WIFSIGNALED(status));
 
-    // never trust user input: drop privileges, if we have any.
-    struct passwd *pwd;
-    pwd = getpwnam("nobody");
-    if (pwd != NULL) {
-      (void)setuid(pwd->pw_uid);
-      (void)setgid(pwd->pw_gid);
-    } else {
-      fprintf(stderr, "Error looking up user 'nobody'. Keeping privileges.\n");
-    }
     int ret = dump_last_line();
     unlink("/tmp/gdb_history.txt");
     exit(ret);
@@ -146,6 +137,7 @@ static int dump_last_line() {
 
   FILE *fd = fopen("/tmp/gdb_history.txt", "rb");
   if (fd == NULL) {
+    perror("error opening history file");
     return EXIT_FAILURE;
   }
 
