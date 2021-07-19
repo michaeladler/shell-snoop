@@ -7,8 +7,6 @@ Currently, there is support for **bash** and **zsh**.
 
 ## Demo
 
-NB: This assumes that your shell is `zsh`.
-
 ```bash
 # get pid of zsh
 $ echo $$
@@ -21,18 +19,20 @@ $ env foo=bar sleep 300
 In another shell:
 
 ```bash
-$ shell-snoop-zsh 14316
+$ shell-snoop 14316
 env foo=bar sleep 300
 ```
 
-As you can see, `shell-snoop-zsh` was able to figure the exact command which was used to start the child process.
+As you can see, `shell-snoop` was able to figure the exact command which was used to start the child process.
 
-## Install
+## Build & Install
 
 ```
+$ mkdir -p build && cd build
+$ cmake ..
 $ make
-# make install
-# setcap cap_sys_ptrace+eip shell-snoop-zsh
+$ make install
+# setcap cap_sys_ptrace+eip /usr/bin/shell-snoop
 ```
 
 ## Credits

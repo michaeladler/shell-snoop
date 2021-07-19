@@ -23,12 +23,11 @@ static bool zsh_mode;
 static int dump_last_line();
 static bool is_empty_file(const char *name);
 
-int main(int argc, char *argv[]) {
-  size_t str_len = strlen(argv[0]);
-  zsh_mode = strncmp(argv[0] + str_len - 4, "-zsh", 4) == 0;
+#define MAX(X, Y) (((X) < (Y)) ? (Y) : (X))
 
-  if (argc < 2) {
-    exit(EXIT_SUCCESS);
+int main(int argc, char *argv[]) {
+  if (argc != 2) {
+    exit(EXIT_FAILURE);
   }
 
   char *endptr;
@@ -49,6 +48,19 @@ int main(int argc, char *argv[]) {
   if (is_empty_file(buf)) {
     fprintf(stderr, "skipping pid %lu for it has no children\n", pane_pid);
     return EXIT_SUCCESS;
+  }
+
+  { // determine shell: bash or zsh
+    snprintf(buf, sizeof(buf), "/proc/%lu/task/%lu/exe", pane_pid, pane_pid);
+    char tmp[1024];
+    ssize_t len;
+    if ((len = readlink(buf, tmp, sizeof(tmp)-1)) != -1) {
+      tmp[len] = '\0';
+      if (strncmp("zsh", &tmp[MAX(0, len-3)], 3) == 0) {
+        zsh_mode = true;
+      }
+    }
+    fprintf(stderr, "detected shell: %s\n",  zsh_mode ? "zsh" : "bash");
   }
 
   if (capng_get_caps_process() == 0) {
