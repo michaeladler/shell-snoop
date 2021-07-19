@@ -32,7 +32,7 @@ As you can see, `shell-snoop-zsh` was able to figure the exact command which was
 ```
 $ make
 # make install
-# make setcap
+# setcap cap_sys_ptrace+eip shell-snoop-zsh
 ```
 
 ## Credits
