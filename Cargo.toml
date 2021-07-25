@@ -1,0 +1,19 @@
+[package]
+name = "shell-snoop"
+version = "0.3.0"
+edition = "2018"
+
+[dependencies]
+anyhow = "1.0.42"
+caps = "0.5.2"
+proc-status = "0.1.1"
+rev_lines = "0.2.1"
+
+[profile.release]
+# see https://github.com/johnthagen/min-sized-rust
+opt-level = 'z'     # Optimize for size.
+lto = true          # Enable Link Time Optimization
+codegen-units = 1   # Reduce number of codegen units to increase optimizations.
+panic = 'abort'     # Abort on panic
+# for profiling
+# debug = 1

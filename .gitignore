@@ -1,4 +1,2 @@
-*.json
-.cache
-out
+/target
 /result

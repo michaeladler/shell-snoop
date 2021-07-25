@@ -1,13 +1,14 @@
-{ stdenv, lib, cmake, pkg-config, libcap_ng }:
+{ lib, rustPlatform }:
 
-stdenv.mkDerivation rec {
+rustPlatform.buildRustPackage rec {
   pname = "shell-snoop";
-  version = lib.fileContents  ./VERSION;
+  version = "0.3.0";
 
   src = lib.cleanSource ./.;
 
-  nativeBuildInputs = [ cmake pkg-config ];
-  buildInputs = [ libcap_ng ];
+  cargoSha256 = "sha256-wUzwQbopT3BstKo6UiIQj4sEgfJbMUDivSL9FqAr/WY=";
+
+  postInstall = "strip $out/bin/shell-snoop";
 
   meta = with lib; {
     homepage = "https://github.com/michaeladler/shell-snoop";
@@ -15,4 +16,5 @@ stdenv.mkDerivation rec {
     platforms = platforms.all;
     license = licenses.asl20;
   };
+
 }

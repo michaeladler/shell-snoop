@@ -25,14 +25,11 @@ env foo=bar sleep 300
 
 As you can see, `shell-snoop` was able to figure the exact command which was used to start the child process.
 
-## Build & Install
+## Install
 
 ```
-$ mkdir -p build && cd build
-$ cmake ..
-$ make
-$ make install
-# setcap cap_sys_ptrace+eip /usr/bin/shell-snoop
+$ cargo install
+# setcap cap_sys_ptrace+eip ~/.cargo/bin/shell-snoop
 ```
 
 ## Credits
