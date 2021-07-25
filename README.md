@@ -1,3 +1,5 @@
+[![ci](https://github.com/michaeladler/shell-snoop/actions/workflows/ci.yml/badge.svg)](https://github.com/michaeladler/shell-snoop/actions/workflows/ci.yml)
+
 # shell-snoop
 
 **shell-snoop** figures out the **exact command** which was used to run a child process in a shell.
