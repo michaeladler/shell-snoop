@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
     };
     argv[6] = zsh_mode
                   ? "call (void)savehistfile(\"/tmp/gdb_history.txt\", 0, 0)"
-                  : "(void)write_history(\"/tmp/gdb_history.txt\")";
+                  : "call (void)write_history(\"/tmp/gdb_history.txt\")";
 
     close(STDOUT_FILENO);
     // bye bye
