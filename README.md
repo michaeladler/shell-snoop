@@ -1,3 +1,4 @@
+[![build](https://github.com/michaeladler/shell-snoop/actions/workflows/build.yml/badge.svg)](https://github.com/michaeladler/shell-snoop/actions/workflows/build.yml)
 [![ci](https://github.com/michaeladler/shell-snoop/actions/workflows/ci.yml/badge.svg)](https://github.com/michaeladler/shell-snoop/actions/workflows/ci.yml)
 
 # shell-snoop
@@ -27,12 +28,15 @@ env foo=bar sleep 300
 
 As you can see, `shell-snoop` was able to figure the exact command which was used to start the child process.
 
-## Install
+## Build & Install
 
 ```
 $ cargo install
 # setcap cap_sys_ptrace+eip ~/.cargo/bin/shell-snoop
 ```
+
+**Hint**: A statically linked binary is provided as an artifact in [Github Actions](https://github.com/michaeladler/shell-snoop/actions/workflows/build.yml).
+You must be logged in to download it though (this is a restriction imposed by Github for 'security reasons').
 
 ## Credits
 
