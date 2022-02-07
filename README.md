@@ -17,7 +17,7 @@ $ echo $$
 
 # start some arbitrary child process:
 $ env foo=bar sleep 300
-``` 
+```
 
 In another shell:
 
@@ -41,4 +41,3 @@ You must be logged in to download it though (this is a restriction imposed by Gi
 ## Credits
 
 This is based on [save_command_strategies/gdb.sh](https://github.com/tmux-plugins/tmux-resurrect/blob/8ebda79f6881d84a0cdc144ad5f20395eb0dd846/save_command_strategies/gdb.sh) by Bruno Sutic.
-
