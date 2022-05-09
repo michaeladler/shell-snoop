@@ -1,44 +1,78 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    utils.url = "github:numtide/flake-utils";
-    naersk = {
-      url = "github:nmattia/naersk";
+
+    crane = {
+      url = "github:ipetkov/crane";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, utils, naersk }:
-    utils.lib.eachDefaultSystem (system:
+  outputs = { self, nixpkgs, crane, flake-utils, ... }:
+    flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = nixpkgs.legacyPackages."${system}";
-        naersk-lib = naersk.lib."${system}";
-      in
-      rec {
-        # `nix build`
-        packages.shell-snoop = naersk-lib.buildPackage {
-          pname = "shell-snoop";
-          version = "0.3.0";
-          root = ./.;
+        pkgs = import nixpkgs {
+          inherit system;
+        };
 
-          meta = with pkgs.lib; {
-            homepage = "https://github.com/michaeladler/shell-snoop";
-            description = "figure out the exact command which was used to run a child process in a shell";
-            platforms = platforms.linux;
-            license = licenses.asl20;
+        craneLib = crane.lib.${system};
+        src = ./.;
+
+        # Build *just* the cargo dependencies, so we can reuse
+        # all of that work (e.g. via cachix) when running in CI
+        cargoArtifacts = craneLib.buildDepsOnly {
+          inherit src;
+        };
+
+        # Build the actual crate itself, reusing the dependency
+        # artifacts from above.
+        shell-snoop = craneLib.buildPackage {
+          inherit cargoArtifacts src;
+        };
+      in
+      {
+        checks = {
+          # Build the crate as part of `nix flake check` for convenience
+          inherit shell-snoop;
+
+          # Run clippy (and deny all warnings) on the crate source,
+          # again, resuing the dependency artifacts from above.
+          #
+          # Note that this is done as a separate derivation so that
+          # we can block the CI if there are issues here, but not
+          # prevent downstream consumers from building our crate by itself.
+          shell-snoop-clippy = craneLib.cargoClippy {
+            inherit cargoArtifacts src;
+            cargoClippyExtraArgs = "-- --deny warnings";
+          };
+
+          # Check formatting
+          shell-snoop-fmt = craneLib.cargoFmt {
+            inherit src;
+          };
+
+          # Check code coverage (note: this will not upload coverage anywhere)
+          shell-snoop-coverage = craneLib.cargoTarpaulin {
+            inherit cargoArtifacts src;
           };
         };
-        defaultPackage = packages.shell-snoop;
 
-        # `nix run`
-        apps.shell-snoop = utils.lib.mkApp {
-          drv = packages.shell-snoop;
+        packages.default = shell-snoop;
+
+        apps.default = flake-utils.lib.mkApp {
+          drv = shell-snoop;
         };
-        defaultApp = apps.shell-snoop;
 
-        # `nix develop`
         devShell = pkgs.mkShell {
-          nativeBuildInputs = with pkgs; [ rustc cargo ];
+          inputsFrom = builtins.attrValues self.checks;
+
+          # Extra inputs can be added here
+          nativeBuildInputs = with pkgs; [
+            cargo
+            rustc
+          ];
         };
       });
 }
