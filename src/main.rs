@@ -56,33 +56,33 @@ fn main() {
                     if let Err(e) = cmd.wait() {
                         eprintln!("gdb failed with non-zero exit code: {}", e);
                     }
+
+                    match File::open(&dumpfile) {
+                        Ok(file) => {
+                            let reader = BufReader::new(file);
+                            if let Ok(mut rev_lines) = RevLines::new(reader) {
+                                if let Some(last_line) = rev_lines.next() {
+                                    let cmd = match shell {
+                                        Shell::Zsh => last_line.split(';').nth(1),
+                                        Shell::Bash => Some(last_line.as_str()),
+                                    };
+                                    if let Some(cmd) = cmd {
+                                        println!("{}", cmd);
+                                    }
+                                }
+                            }
+
+                            if let Err(e) = std::fs::remove_file(&dumpfile) {
+                                eprintln!("Failed to remove dump file: {}", e);
+                            }
+                        }
+                        Err(e) => {
+                            eprintln!("Error reading {}: {}", dumpfile, e);
+                        }
+                    }
                 }
                 Err(e) => {
                     eprintln!("Failed to spawn gdb: {}. Make sure 'gdb' is installed!", e);
-                }
-            }
-
-            match File::open(&dumpfile) {
-                Ok(file) => {
-                    let reader = BufReader::new(file);
-                    if let Ok(mut rev_lines) = RevLines::new(reader) {
-                        if let Some(last_line) = rev_lines.next() {
-                            let cmd = match shell {
-                                Shell::Zsh => last_line.split(';').nth(1),
-                                Shell::Bash => Some(last_line.as_str()),
-                            };
-                            if let Some(cmd) = cmd {
-                                println!("{}", cmd);
-                            }
-                        }
-                    }
-
-                    if let Err(e) = std::fs::remove_file(&dumpfile) {
-                        eprintln!("Failed to remove dump file: {}", e);
-                    }
-                }
-                Err(e) => {
-                    eprintln!("Error reading {}: {}", dumpfile, e);
                 }
             }
         }
