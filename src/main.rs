@@ -37,7 +37,7 @@ fn main() {
         if let Some(shell) = shell {
             let dumpfile = format!("/tmp/{}-history-{}.txt", shell, pid);
 
-            if let Ok(mut cmd) = process::Command::new("gdb")
+            match process::Command::new("gdb")
                 .stdin(Stdio::null())
                 .stdout(Stdio::null())
                 .arg("-n")
@@ -52,8 +52,13 @@ fn main() {
                 .arg("q")
                 .spawn()
             {
-                if let Err(e) = cmd.wait() {
-                    eprintln!("gdb failed with non-zero exit code: {}", e);
+                Ok(mut cmd) => {
+                    if let Err(e) = cmd.wait() {
+                        eprintln!("gdb failed with non-zero exit code: {}", e);
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Failed to spawn gdb: {}. Make sure 'gdb' is installed!", e);
                 }
             }
 
