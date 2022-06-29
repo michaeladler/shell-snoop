@@ -3,20 +3,22 @@ use std::fs::{self, File};
 use std::io::BufReader;
 use std::process::{self, Stdio};
 
-use anyhow::Result;
 use caps::{self, CapSet, Capability};
 use libproc::libproc::proc_pid;
 use rev_lines::RevLines;
 
-fn main() -> Result<()> {
-    caps::raise(None, CapSet::Inheritable, Capability::CAP_SYS_PTRACE)?;
-    caps::raise(None, CapSet::Ambient, Capability::CAP_SYS_PTRACE)?;
+fn main() {
+    if caps::raise(None, CapSet::Inheritable, Capability::CAP_SYS_PTRACE).is_err() {
+        eprintln!("Failed to raise inheritable capability. Trying anyway.");
+    }
+    if caps::raise(None, CapSet::Ambient, Capability::CAP_SYS_PTRACE).is_err() {
+        eprintln!("Failed to raise ambient capability. Trying anyway.");
+    }
 
     let args = env::args();
-    for pid in args.skip(1) {
-        let pid: i32 = pid.parse::<i32>()?;
-
-        let contents = fs::read_to_string(format!("/proc/{}/task/{}/children", pid, pid))?;
+    for pid in args.skip(1).flat_map(|pid| pid.parse::<i32>()) {
+        let contents =
+            fs::read_to_string(format!("/proc/{}/task/{}/children", pid, pid)).unwrap_or_default();
         if contents.is_empty() {
             // avoid starting gdb since it is an expensive operation
             eprintln!("skipping pid {} because it has not children", pid);
@@ -34,7 +36,8 @@ fn main() -> Result<()> {
 
         if let Some(shell) = shell {
             let dumpfile = format!("/tmp/shell-history-{}.txt", pid);
-            let mut cmd = process::Command::new("gdb")
+
+            if let Ok(mut cmd) = process::Command::new("gdb")
                 .stdin(Stdio::null())
                 .stdout(Stdio::null())
                 .arg("-n")
@@ -47,22 +50,26 @@ fn main() -> Result<()> {
                 .arg("detach")
                 .arg("--eval")
                 .arg("q")
-                .spawn()?;
-            cmd.wait()?;
+                .spawn()
+            {
+                if let Err(e) = cmd.wait() {
+                    eprintln!("gdb failed with non-zero exit code: {}", e);
+                }
+            }
 
             match File::open(&dumpfile) {
                 Ok(file) => {
                     let reader = BufReader::new(file);
-                    let mut rev_lines = RevLines::new(reader)?;
-                    if let Some(last_line) = rev_lines.next() {
-                        let cmd = match shell {
-                            Shell::Zsh => last_line
-                                .split(';')
-                                .nth(1)
-                                .expect("Unable to determine command"),
-                            Shell::Bash => &last_line,
-                        };
-                        println!("{}", cmd);
+                    if let Ok(mut rev_lines) = RevLines::new(reader) {
+                        if let Some(last_line) = rev_lines.next() {
+                            let cmd = match shell {
+                                Shell::Zsh => last_line.split(';').nth(1),
+                                Shell::Bash => Some(last_line.as_str()),
+                            };
+                            if let Some(cmd) = cmd {
+                                println!("{}", cmd);
+                            }
+                        }
                     }
 
                     if let Err(e) = std::fs::remove_file(&dumpfile) {
@@ -75,8 +82,6 @@ fn main() -> Result<()> {
             }
         }
     }
-
-    Ok(())
 }
 
 enum Shell {
