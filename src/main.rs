@@ -1,7 +1,7 @@
-use std::env;
 use std::fs::{self, File};
 use std::io::BufReader;
 use std::process::{self, Stdio};
+use std::{env, fmt};
 
 use caps::{self, CapSet, Capability};
 use libproc::libproc::proc_pid;
@@ -35,7 +35,7 @@ fn main() {
         };
 
         if let Some(shell) = shell {
-            let dumpfile = format!("/tmp/shell-history-{}.txt", pid);
+            let dumpfile = format!("/tmp/{}-history-{}.txt", shell, pid);
 
             if let Ok(mut cmd) = process::Command::new("gdb")
                 .stdin(Stdio::null())
@@ -95,5 +95,19 @@ impl Shell {
             Shell::Zsh => format!("call (void)savehistfile(\"{}\", 0, 0)", &dumpfile),
             Shell::Bash => format!("call (void)write_history(\"{}\")", &dumpfile),
         }
+    }
+}
+
+impl fmt::Display for Shell {
+    // This trait requires `fmt` with this exact signature.
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Shell::Bash => "bash",
+                Shell::Zsh => "zsh",
+            }
+        )
     }
 }
