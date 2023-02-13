@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 caps = "0.5.2"
-libproc = "0.12.0"
+libproc = "0.13.0"
 rev_lines = "0.2.1"
 
 [profile.release]
