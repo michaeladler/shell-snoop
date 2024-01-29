@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 caps = "0.5.2"
 libproc = "0.14.2"
-rev_lines = "0.2.1"
+rev_lines = "0.2.2"
 
 [profile.release]
 # see https://github.com/johnthagen/min-sized-rust

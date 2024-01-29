@@ -182,9 +182,9 @@ checksum = "456c603be3e8d448b072f410900c09faf164fbce2d480456f50eea6e25f9c848"
 
 [[package]]
 name = "rev_lines"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18eb52b6664d331053136fcac7e4883bdc6f5fc04a6aab3b0f75eafb80ab88b3"
+checksum = "af8297f87280eeeed2dea96a8eff55ddbb909a7cccc42be6087d29954068304d"
 
 [[package]]
 name = "rustc-hash"
